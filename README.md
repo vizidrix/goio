@@ -17,6 +17,7 @@ import (
 
 ````
 cert, err := gocert.MakeCert("Acme Inc.", 1024, []string{}, time.Minute * 10, false)
+````
 
 ----
 
