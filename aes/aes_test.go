@@ -7,18 +7,31 @@ import (
 	"testing"
 )
 
+func Test_Should_encrypt_and_decrypt_bytes(t *testing.T) {
+	key := []byte("1a2a3a4a5a 1a2a3a4a5a 1a2a3a4a5a")
+	data := []byte("some secret information to encode")
+	var encrypted []byte
+	var decrypted []byte
+	var err error
+
+	if encrypted, err = aes.AesEncrypt(key, data); err != nil {
+		t.Errorf("Error encrypting\n\t- %s\n", err)
+	}
+	if decrypted, err = aes.AesDecrypt(key, encrypted); err != nil {
+		t.Errorf("Error decrypting\n\t- %s\n", err)
+	}
+	if !ByteSliceEqual(data, decrypted) {
+		t.Errorf("Decrypted data expected [%v] but was [%v]\n", data, decrypted)
+	}
+}
+
 func Test_Should_write_and_read(t *testing.T) {
 	hash := sha256.Sum256([]byte{118, 105, 122, 105, 100, 114, 105, 120})
 	key := hash[:]
 	secret := []byte("some things shouldn't be said")
-	//key := make([]byte, 256)
 
-	//copy(key[:32], hash[:])
 	fmt.Printf("Key:\n%v\nSize: %d\n", key, len(key))
 
-	/*for i := byte(0); i <= 255; i++ {
-		key[i] = i
-	}*/
 	buffer := new(bytes.Buffer)
 	w_handle, _ := NewWriter(buffer, key)
 	if count, err := w_handle.Write(secret); count == 0 || err != nil {
@@ -34,12 +47,9 @@ func Test_Should_write_and_read(t *testing.T) {
 
 	fmt.Printf("Encrypted:\n%s\n", buffer.Bytes())
 
-	//r_buffer := new(bytes.Buffer)
-	//copy(r_buffer, buffer.Bytes())
 	bytes_r_handle := bytes.NewReader(buffer.Bytes())
 
 	fmt.Printf("Byte handle: %d\n", bytes_r_handle.Len())
-	//r_buffer, _ := bytes.NewReader(buffer.Bytes())
 	r_handle, _ := NewReader(bytes_r_handle, key)
 
 	data := make([]byte, len(buffer.Bytes()))
