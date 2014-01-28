@@ -1,4 +1,4 @@
-package gocert
+package goio
 
 import (
 	"testing"

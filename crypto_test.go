@@ -1,11 +1,12 @@
-package gocert
+package goio
 
 import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
 	"fmt"
-	"github.com/vizidrix/crypto/aes"
+	"github.com/vizidrix/goio/aes"
 	"io"
 	"os"
 	"testing"
@@ -20,11 +21,11 @@ func Test_Should_encrypt_and_decrypt_bytes(t *testing.T) {
 	var err error
 
 	//fmt.Printf("Encrypting... \n\t%v\n", data)
-	if encrypted, err = AesEncrypt(key, data); err != nil {
+	if encrypted, err = aes.AesEncrypt(key, data); err != nil {
 		t.Errorf("Error encrypting\n\t- %s\n", err)
 	}
 	//fmt.Printf("Decrypting... \n\t%v\n", encrypted)
-	if decrypted, err = AesDecrypt(key, encrypted); err != nil {
+	if decrypted, err = aes.AesDecrypt(key, encrypted); err != nil {
 		t.Errorf("Error decrypting\n\t- %s\n", err)
 	}
 	//fmt.Printf("Comparing...\n")
@@ -42,8 +43,11 @@ func Test_Should_pack_contents_and_then_read_back(t *testing.T) {
 func makeTheThings() {
 	//file_w_handle, _ := os.Create("testing/testfile.tar.gz")
 	//defer file_w_handle.Close()
+	hash := sha256.Sum256([]byte{118, 105, 122, 105, 100, 114, 105, 120})
+	key := hash[:]
+
 	buffer := new(bytes.Buffer)
-	aes_w_handle, _ := aes.NewWriter(buffer)
+	aes_w_handle, _ := aes.NewWriter(buffer, key)
 	//zip_w_handle := gzip.NewWriter(file_w_handle)
 	zip_w_handle, _ := gzip.NewWriterLevel(aes_w_handle, gzip.BestCompression) // NewWriterLevel
 	//defer zip_w_handle.Close()
@@ -73,9 +77,12 @@ func makeTheThings() {
 		panic("bad things happened")
 	}
 	zip_w_handle.Close()
+	aes_w_handle.Close()
+
 	// begin reading
 	bytes_r_handle := bytes.NewReader(buffer.Bytes())
-	gzip_r_handle, _ := gzip.NewReader(bytes_r_handle)
+	aes_r_handle, _ := aes.NewReader(bytes_r_handle, key)
+	gzip_r_handle, _ := gzip.NewReader(aes_r_handle)
 	tar_r_handle := tar.NewReader(gzip_r_handle)
 
 	for {
