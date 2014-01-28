@@ -19,6 +19,16 @@ import (
 cert, err := gocert.MakeCert("Acme Inc.", 1024, []string{}, time.Minute * 10, false)
 ````
 
+````
+// 32 char key code
+key := []byte("1a2a3a4a5a 1a2a3a4a5a 1a2a3a4a5a")
+data := []byte("some secret information to encode")
+
+// Do encrypt and decrypt
+encrypted, _ := AesEncrypt(key, data)
+decrypted, _ := AesDecrypt(key, encrypted)
+````
+
 ----
 
 Version
