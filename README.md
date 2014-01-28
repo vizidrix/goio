@@ -1,7 +1,7 @@
-gocert
+goio
 ======
 
-Cert management helper utils for Golang
+IO helper utils for Golang
 
 ## Getting Started ##
 
@@ -9,14 +9,14 @@ Cert management helper utils for Golang
 
 ````go
 import (
-	"github.com/vizidrix/gocert"
+	. "github.com/vizidrix/goio"
 )
 ````
 
 2\. Start using
 
 ````
-cert, err := gocert.MakeCert("Acme Inc.", 1024, []string{}, time.Minute * 10, false)
+cert, err := MakeCert("Acme Inc.", 1024, []string{}, time.Minute * 10, false)
 ````
 
 ````
@@ -33,24 +33,25 @@ decrypted, _ := AesDecrypt(key, encrypted)
 
 Version
 ----
-0.1.0 ish
+0.1.1 ish
 
 Tech
 ----
 
 * [Go] - Golang.org
-* [GOCERT] - RSA Cert generation helper for Golang
+* [GOIO] - Utility methods for Golang to help with Zip, Crypto, etc
 
 License
 ----
 
-https://github.com/Vizidrix/gocert/blob/master/LICENSE
+https://github.com/vizidrix/goio/blob/master/LICENSE
 
 ----
 ## Edited
+* 27-January-2014		refactoring AES to include Reader and Writer interfaces
 * 27-January-2014		initial release
 
 ----
 ## Credits
-* Vizidrix <https://github.com/organizations/Vizidrix>
+* Vizidrix <https://github.com/organizations/vizidrix>
 * Perry Birch <https://github.com/PerryBirch>
