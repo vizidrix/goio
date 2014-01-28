@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"github.com/vizidrix/crypto/aes"
 	"io"
 	"os"
 	"testing"
@@ -42,8 +43,9 @@ func makeTheThings() {
 	//file_w_handle, _ := os.Create("testing/testfile.tar.gz")
 	//defer file_w_handle.Close()
 	buffer := new(bytes.Buffer)
+	aes_w_handle, _ := aes.NewWriter(buffer)
 	//zip_w_handle := gzip.NewWriter(file_w_handle)
-	zip_w_handle := gzip.NewWriter(buffer)
+	zip_w_handle, _ := gzip.NewWriterLevel(aes_w_handle, gzip.BestCompression) // NewWriterLevel
 	//defer zip_w_handle.Close()
 	tar_w_handle := tar.NewWriter(zip_w_handle)
 	//defer tar_w_handle.Close()
