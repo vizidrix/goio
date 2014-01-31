@@ -159,12 +159,12 @@ func (z *Writer) Close() error {
 	}
 	z.closed = true
 	var encrypted []byte = make([]byte, z.size)
-	fmt.Println("Decrypting")
+	//fmt.Println("Decrypting")
 	encrypted, z.err = AesEncrypt(z.key, z.buffer.Bytes())
 	if z.err != nil {
 		return z.err
 	}
-	fmt.Println("Decrypted")
+	//fmt.Println("Decrypted")
 	z.encrypted = encrypted
 	_, z.err = z.w.Write(z.encrypted)
 	return z.err

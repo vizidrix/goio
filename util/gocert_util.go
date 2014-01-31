@@ -7,16 +7,18 @@ import (
 	//"crypto/sha256"
 	"fmt"
 	//"github.com/vizidrix/goio/aes"
+	"github.com/vizidrix/goio"
 	//"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func main() {
 	var err error
-	targetDirPath := ""
+	targetDirPath := "c:/src/intel/src/github.com/vizidrix/inde-web"
 
 	fileWhiteList := []string{
 		"*.js",
@@ -24,6 +26,18 @@ func main() {
 		"*.png",
 		"*.css",
 		"*.ttf",
+	}
+
+	if len(os.Args) > 1 {
+		var cert *goio.Cert
+		if os.Args[1] == "cert" {
+			if cert, err = goio.MakeCert("intel", 2048, []string{"localhost"}, 30*time.Minute, false); err != nil {
+				panic(err)
+			}
+			cert.WritePrivate("private.pem")
+			cert.WritePublic("public.pem")
+			return
+		}
 	}
 	//decodeString := "intelinde"
 
