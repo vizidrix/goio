@@ -46,10 +46,6 @@ func HandleSignalWs(key string, signalChan chan struct{}, exitChan chan struct{}
 		defer func() { conn.Close() }()
 		counter++
 		var index = counter
-		log := func(message string) {
-			fmt.Printf("\n[%d - %s]\t%s\n", index, wskey, message)
-		}
-		log("Got ws connection")
 		connEntry := NewIndexedWSConn(index)
 		addWSChan <- connEntry
 
@@ -60,11 +56,9 @@ func HandleSignalWs(key string, signalChan chan struct{}, exitChan chan struct{}
 					Value string
 				}
 				if err := websocket.JSON.Receive(conn, &data); err != nil {
-					log(fmt.Sprintf("Error receiving ws: %s", err))
 					removeWSChan <- connEntry
 					return
 				}
-				log(fmt.Sprintf("Got data: %v\n", data))
 			}
 		}()
 
@@ -74,15 +68,11 @@ func HandleSignalWs(key string, signalChan chan struct{}, exitChan chan struct{}
 				case <-connEntry.SignalChan:
 					var data struct{}
 					if err := websocket.JSON.Send(conn, &data); err != nil {
-						log(fmt.Sprintf("Error sending on socket: %s", err))
 						removeWSChan <- connEntry
 					}
-					log("Sent signal")
 				case <-connEntry.ExitChan:
-					log("Sending terminated")
 					return
 				case <-exitChan:
-					log("Exiting send routine")
 					return
 				}
 			}
@@ -91,6 +81,5 @@ func HandleSignalWs(key string, signalChan chan struct{}, exitChan chan struct{}
 		case <-connEntry.ExitChan: // The ws connection terminated
 		case <-exitChan: // The server was terminated
 		}
-		log("Connection terminated")
 	}
 }
