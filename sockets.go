@@ -2,7 +2,6 @@ package goio
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"fmt"
 )
 
 type indexedWSConn struct {
@@ -20,7 +19,6 @@ func NewIndexedWSConn(index int64) *indexedWSConn {
 }
 
 func HandleSignalWs(key string, signalChan chan struct{}, exitChan chan struct{}) func(*websocket.Conn) {
-	var wskey string = key
 	var counter int64 = 0
 	connections := make(map[int64]*indexedWSConn)
 	addWSChan := make(chan *indexedWSConn)
