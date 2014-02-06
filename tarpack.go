@@ -1,13 +1,136 @@
 package goio
 
 import (
-	//"archive/tar"
+	"archive/tar"
 	//"compress/gzip"
-	"errors"
+	//"errors"
+	"bytes"
 	"fmt"
-	"net/http"
+	"io/ioutil"
+	//"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 )
+
+func ContainsPredicate(whitelist []string, name string) bool {
+	for _, entry := range whitelist {
+		if strings.Contains(name, entry) {
+			return true
+		}
+	}
+	return false
+}
+
+func FileMatchPredicate(whitelist []string, name string) bool {
+	for _, entry := range whitelist {
+		if match, _ := filepath.Match(entry, name); match {
+			return true
+		}
+	}
+	return false
+}
+
+func DirFilter(whitelist, blacklist []string) func(string) bool {
+	wLen := len(whitelist)
+	bLen := len(blacklist)
+	if wLen == 0 && bLen == 0 {
+		return func(fileName string) bool { return true }
+	}
+	if wLen == 0 {
+		return func(fileName string) bool { return !ContainsPredicate(blacklist, fileName) }
+	}
+	if bLen == 0 {
+		return func(fileName string) bool { return ContainsPredicate(whitelist, fileName) }
+	}
+	return func(fileName string) bool {
+		return ContainsPredicate(whitelist, fileName) && !ContainsPredicate(blacklist, fileName)
+	}
+}
+
+func FileFilter(whitelist, blacklist []string) func(string) bool {
+	wLen := len(whitelist)
+	bLen := len(blacklist)
+	if wLen == 0 && bLen == 0 {
+		return func(fileName string) bool { return true }
+	}
+	if wLen == 0 {
+		return func(fileName string) bool { return !FileMatchPredicate(blacklist, fileName) }
+	}
+	if bLen == 0 {
+		return func(fileName string) bool { return FileMatchPredicate(whitelist, fileName) }
+	}
+	return func(fileName string) bool {
+		return FileMatchPredicate(whitelist, fileName) && !FileMatchPredicate(blacklist, fileName)
+	}
+}
+
+func TarDir(rootPath, relPath string, folderFilter func(string) bool, fileFilter func(string) bool) error {
+	buffer := new(bytes.Buffer)
+	handle := tar.NewWriter(buffer)
+	return tarDir(handle, rootPath, relPath, folderFilter, fileFilter)
+}
+
+func tarDir(handle *tar.Writer, rootPath, relPath string, folderFilter func(string) bool, fileFilter func(string) bool) error {
+	fmt.Printf("Tarring dir: %s => %s\n", rootPath, relPath)
+	var err error
+	var files []os.FileInfo
+	if files, err = ioutil.ReadDir(rootPath); err != nil {
+		return err
+	}
+	for _, file := range files {
+		newPath := relPath
+		if len(relPath) != 0 && relPath[:len(relPath)] != "/" {
+			newPath += "/"
+		}
+		if file.IsDir() { // File is a dir and not a file
+			if !folderFilter(file.Name()) {
+				continue
+			}
+			tarDir(handle, rootPath+"/"+file.Name(), newPath+file.Name(), folderFilter, fileFilter)
+		} else { // File is a file and not a dir
+			if !fileFilter(file.Name()) {
+				continue
+			}
+			fmt.Printf("Writing file: %s -> %s\n", relPath, file.Name())
+			if err = writeFile(handle, rootPath+"/"+file.Name(), newPath+file.Name()); err != nil {
+				fmt.Printf("Error writing file: %s\n", err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func writeFile(handle *tar.Writer, rootPath, relPath string) error {
+	var file *os.File
+	var stat os.FileInfo
+	var buffer []byte
+	var err error
+	if file, err = os.OpenFile(rootPath, os.O_RDONLY, os.ModePerm); err != nil {
+		return err
+	}
+	if stat, err = file.Stat(); err != nil {
+		return err
+	}
+	file.Close()
+	header := &tar.Header{
+		Name: relPath,
+		Size: stat.Size(),
+	}
+	if err := handle.WriteHeader(header); err != nil {
+		return err
+	}
+	if buffer, err = ioutil.ReadFile(rootPath); err != nil {
+		return err
+	}
+	if _, err := handle.Write(buffer); err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
 
 type tarPack struct {
 	filePath   string
@@ -85,7 +208,7 @@ func (f *file) Read(buffer []byte) (int, error) {
 func (f *file) Seek(offset int64, whence int) (int64, error) {
 	return 0, nil
 }
-
+*/
 /*
 	if filepath.Separator != '/' && strings.IndexRune(name, filepath.Separator) >= 0 ||
     	strings.Contains(name, "\x00") {
