@@ -8,6 +8,7 @@ import (
 	"fmt"
 	//"github.com/vizidrix/goio/aes"
 	"github.com/vizidrix/goio"
+	tp "github.com/vizidrix/goio/tarpack"
 	//"io"
 	"io/ioutil"
 	"os"
@@ -54,6 +55,8 @@ func main() {
 	tar_w_handle := tar.NewWriter(buffer)
 	writeDir(tar_w_handle, targetDirPath, "", fileWhiteList)
 
+	folderFilter := tp.OnFiles()
+	tp.TarDir(targetDirPath, "")
 	/*
 		files, _ := ioutil.ReadDir(targetDirPath)
 		for _, file := range files {
