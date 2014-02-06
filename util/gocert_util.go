@@ -109,12 +109,6 @@ func writeDir(handle *tar.Writer, rootPath, relPath string, fileWhiteList []stri
 			if !isWhitelistedFile(fileWhiteList, file.Name()) {
 				continue
 			}
-			/*
-				if match, _ := filepath.Match(whitelist, file.Name()); !match {
-					// Skip files that aren't in whitelist pattern
-					continue
-				}
-			*/
 			fmt.Printf("Writing file: %s -> %s\n", relPath, file.Name())
 			if err = writeFile(handle, rootPath+"/"+file.Name(), newPath+file.Name()); err != nil {
 				fmt.Printf("Error writing file: %s\n", err)
@@ -137,13 +131,6 @@ func writeFile(handle *tar.Writer, rootPath, relPath string) error {
 		return err
 	}
 	file.Close()
-	/*newPath := relPath
-	if len(relPath) != 0 && relPath[:len(relPath)] != "/" {
-		newPath += "/"
-	}
-	newPath += stat.Name()
-	fmt.Printf("Writing to: %s\n", newPath)
-	*/
 	header := &tar.Header{
 		Name: relPath,
 		Size: stat.Size(),

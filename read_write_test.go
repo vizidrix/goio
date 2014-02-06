@@ -17,7 +17,7 @@ func temp() { fmt.Println("asdf") }
 func Test_Should_pack_contents_and_then_read_back(t *testing.T) {
 	makeTheThings()
 	//readTheThings()
-	t.Fail()
+	//t.Fail()
 }
 
 func makeTheThings() {
