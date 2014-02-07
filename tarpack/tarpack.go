@@ -3,94 +3,13 @@ package tarpack
 import (
 	"archive/tar"
 	//"compress/gzip"
-	//"errors"
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	//"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 )
-
-type FilePredicate func(os.FileInfo) bool
-
-// Limit filter scope to only files
-func OnFiles(filters ...FilePredicate) FilePredicate {
-	return func(file os.FileInfo) bool {
-		if file.IsDir() {
-			return true
-		}
-		for _, filter := range filters {
-			if !filter(file) {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-// Limit filter scope to only dirs
-func OnDirs(files []os.FileInfo, filters ...FilePredicate) FilePredicate {
-	return func(file os.FileInfo) bool {
-		if !file.IsDir() {
-			return true
-		}
-		for _, filter := range filters {
-			if !filter(file) {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-// Make sure none of the contained filters matches
-func Not(filters ...FilePredicate) FilePredicate {
-	return func(file os.FileInfo) bool {
-		for _, filter := range filters {
-			if filter(file) {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-func NameContainsAnyPredicate(whitelist ...string) FilePredicate {
-	return func(file os.FileInfo) bool {
-		for _, entry := range whitelist {
-			if strings.Contains(file.Name, entry) {
-				return true
-			}
-		}
-		return false
-	}
-}
-
-func PathMatchAnyPredicate(whitelist ...string) FilePredicate {
-	return func(file os.FileInfo) bool {
-		for _, entry := range whitelist {
-			if match, err := filepath.Match(entry, name); match && err != nil {
-				return true
-			}
-		}
-		return false
-	}
-}
-
-func Where(files []os.FileInfo, filters ...FilePredicate) ([]os.FileInfo, error) {
-	result := make([]os.FileInfo, 0, len(files))
-	for _, file := range files {
-		for _, filter := range filters {
-			if !filter(file) {
-				continue
-			}
-			result = append(result, file)
-		}
-	}
-	return result
-}
 
 /*
 func DirFilter(whitelist, blacklist []string) func(string) bool {
@@ -128,18 +47,37 @@ func FileFilter(whitelist, blacklist []string) func(string) bool {
 }
 */
 
-func TarDir(rootPath, relPath string, filters ...func(os.FileInfo) bool) error {
+/*
+rootPath	- Path to read the contents from
+relPath		- Initial internal path to begin writing into
+filters		- List of filters to apply to the folder/file set
+*/
+func TarDir(rootPath, relPath string, filters ...FilePredicate) ([]byte, error) {
+	var err error
 	buffer := new(bytes.Buffer)
 	handle := tar.NewWriter(buffer)
-	return tarDir(handle, rootPath, relPath, folderFilter, fileFilter)
+	if err = tarDir(handle, rootPath, relPath, filters...); err != nil {
+		return nil, errors.New(fmt.Sprintf("\nTarDir: %s\n", err))
+	}
+	if err = handle.Close(); err != nil {
+		fmt.Printf("Error closing TAR file")
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }
 
-func tarDir(handle *tar.Writer, rootPath, relPath string, filters ...func(os.FileInfo) bool) error {
-	fmt.Printf("Tarring dir: %s => %s\n", rootPath, relPath)
+/*
+handle		- Pointer to a Tar file being built
+rootPath	- Path to read the contents from
+relPath		- Path to write these files into
+filters		- List of filters to apply to the folder/file set
+*/
+func tarDir(handle *tar.Writer, rootPath, relPath string, filters ...FilePredicate) error {
+	//fmt.Printf("\nTarring dir:\n\t[%s]\n\t=>\n\t[%s]\n\n", rootPath, relPath)
 	var err error
 	var files []os.FileInfo
 	if files, err = ioutil.ReadDir(rootPath); err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Root path [%s] error: %s", rootPath, err))
 	}
 	for _, file := range Where(files, filters...) {
 		newPath := relPath
@@ -154,9 +92,9 @@ func tarDir(handle *tar.Writer, rootPath, relPath string, filters ...func(os.Fil
 			}
 		*/
 		if file.IsDir() {
-			tarDir(handle, rootPath+"/"+file.Name(), newPath+file.Name(), folderFilter, fileFilter)
+			tarDir(handle, rootPath+"/"+file.Name(), newPath+file.Name(), filters...)
 		} else { // File is a file
-			fmt.Printf("Writing file: %s -> %s\n", relPath, file.Name())
+			//fmt.Printf("Writing file: %s -> %s\n", relPath, file.Name())
 			if err = writeFile(handle, rootPath+"/"+file.Name(), newPath+file.Name()); err != nil {
 				fmt.Printf("Error writing file: %s\n", err)
 				return err

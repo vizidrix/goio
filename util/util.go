@@ -1,26 +1,95 @@
 package main
 
 import (
-	"archive/tar"
-	"bytes"
-	//"compress/gzip"
-	//"crypto/sha256"
-	"fmt"
-	//"github.com/vizidrix/goio/aes"
 	"github.com/vizidrix/goio"
-	tp "github.com/vizidrix/goio/tarpack"
-	//"io"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 )
 
 func main() {
-	var err error
-	targetDirPath := "c:/src/intel/src/github.com/vizidrix/inde-web"
+	MakeCert()
+}
 
+func MakeCert() {
+	var err error
+	var cert *goio.Cert
+	private := "private.pem"
+	public := "public.pem"
+	if cert, err = goio.MakeCert("intel", 2048, []string{"localhost"}, 30*time.Minute, false); err != nil {
+		panic(err)
+	}
+	cert.WritePrivate(private)
+	cert.WritePublic(public)
+}
+	/*
+	var err error
+	if len(os.Args) > 0 {
+		switch os.Args[1] {
+		case "pack":
+			TarPackDir(os.Args[2:])
+			break
+		case "cert":
+			MakeCert(os.Args[2:])
+			return
+		}
+	}
+	*/
+//}
+
+/*
+func TarPackDir(args []string) {
+	switch args[0] {
+	case "toml":
+		TarPackToml(args[1:])
+		return
+	case "web":
+		TarPackWeb(args[1:])
+		return
+	default:
+		TarPack(args)
+	}
+}
+
+func tarPack(targetDir, outFile string, filters ...tp.FilePredicate) {
+	var buffer []byte
+	if buffer, err = tp.TarDir(targetDir, "", filters...); err != nil {
+		fmt.Printf("Error zipping  TarPack files")
+	}
+	ioutil.WriteFile(outFile, buffer, 0666)
+}
+
+func TarPackToml(args []string) {
+	targetDir := ""
+	outFile := "toml.tar"
+	if len(args) > 0 {
+		targetDir = args[0]
+		outFile = args[1]
+	}
+	fileFilter := tp.OnFiles(tp.PathMatchAny("*.toml"))
+	var buffer []byte
+	if buffer, err = tp.TarDir(targetDir, "", folderFilter, fileFilter); err != nil {
+		fmt.Printf("Error zipping  TarPack files")
+	}
+	ioutil.WriteFile(outFile, buffer, 0666)
+}
+
+func TarPackWeb(args []string) {
+	targetDir := ""
+	outFile := "web.tar"
+	if len(args) > 0 {
+		targetDir = args[0]
+		outFile = args[1]
+	}
+	folderFilter := tp.OnDirs(tp.Not(tp.NameContainsAny(".git")))
+	fileFilter := tp.OnFiles(tp.PathMatchAny("*.js", "*.html", "*.png", "*.css", "*.ttf"))
+	var buffer []byte
+	if buffer, err = tp.TarDir(targetDir, "", folderFilter, fileFilter); err != nil {
+		fmt.Printf("Error zipping Web files")
+	}
+	ioutil.WriteFile(outFile, buffer, 0666)
+}
+*/
+
+	/*
 	fileWhiteList := []string{
 		"*.js",
 		"*.html",
@@ -28,7 +97,8 @@ func main() {
 		"*.css",
 		"*.ttf",
 	}
-
+	*/
+/*
 	if len(os.Args) > 1 {
 		var cert *goio.Cert
 		if os.Args[1] == "cert" {
@@ -40,23 +110,24 @@ func main() {
 			return
 		}
 	}
+	*/
 	//decodeString := "intelinde"
 
 	//hash := sha256.Sum256([]byte(decodeString))
 	//key := hash[:]
 
-	buffer := new(bytes.Buffer)
+	//buffer := new(bytes.Buffer)
 	//aes_w_handle, _ := aes.NewWriter(buffer, key)
 	//zip_w_handle, _ := gzip.NewWriterLevel(aes_w_handle, gzip.BestCompression)
 
 	//zip_w_handle, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
 	//tar_w_handle := tar.NewWriter(zip_w_handle)
 
-	tar_w_handle := tar.NewWriter(buffer)
-	writeDir(tar_w_handle, targetDirPath, "", fileWhiteList)
+	//tar_w_handle := tar.NewWriter(buffer)
+	//writeDir(tar_w_handle, targetDirPath, "", fileWhiteList)
 
-	folderFilter := tp.OnFiles()
-	tp.TarDir(targetDirPath, "")
+
+
 	/*
 		files, _ := ioutil.ReadDir(targetDirPath)
 		for _, file := range files {
@@ -70,9 +141,11 @@ func main() {
 		}
 	*/
 
+		/*
 	if err = tar_w_handle.Close(); err != nil {
 		fmt.Printf("Error closing tar:\n\t- %s\n", err)
 	}
+	*/
 	/*
 		if err = zip_w_handle.Close(); err != nil {
 			fmt.Printf("Error closing zip:\n\t- %s\n", err)
@@ -80,9 +153,10 @@ func main() {
 	*/
 	//aes_w_handle.Close()
 
-	ioutil.WriteFile("indeweb.tar", buffer.Bytes(), 0666)
-}
+	
+//}
 
+/*
 func isWhitelistedFile(whitelist []string, name string) bool {
 	for _, entry := range whitelist {
 		if match, _ := filepath.Match(entry, name); match {
@@ -149,3 +223,4 @@ func writeFile(handle *tar.Writer, rootPath, relPath string) error {
 	}
 	return nil
 }
+*/
