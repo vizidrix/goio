@@ -18,13 +18,11 @@ func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "toml":
-			//fmt.Printf("Packing TOML files\n")
 			filters = append(filters, tp.OnFiles(tp.PathMatchAny("*.toml")))
 			outFile = "toml.tar"
 			argIndex++
 			break
 		case "web":
-			//fmt.Printf("Packing WEB files\n")
 			filters = append(filters, tp.OnFiles(tp.PathMatchAny("*.js", "*.html", "*.png", "*.css", "*.ttf")))
 			outFile = "web.tar"
 			argIndex++

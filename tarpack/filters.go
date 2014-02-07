@@ -12,7 +12,6 @@ type FilePredicate func(os.FileInfo) bool
 func OnFiles(filters ...FilePredicate) FilePredicate {
 	return func(file os.FileInfo) bool {
 		if file.IsDir() {
-			//fmt.Printf("Not a file so ignore\n")
 			return false
 		}
 		for _, filter := range filters {
@@ -28,7 +27,6 @@ func OnFiles(filters ...FilePredicate) FilePredicate {
 func OnDirs(filters ...FilePredicate) FilePredicate {
 	return func(file os.FileInfo) bool {
 		if !file.IsDir() {
-			//fmt.Printf("Not a dir so ignore\n")
 			return false
 		}
 		for _, filter := range filters {
@@ -87,10 +85,8 @@ func Where(files []os.FileInfo, filters ...FilePredicate) []os.FileInfo {
 	for _, file := range files {
 		for _, filter := range filters {
 			if !filter(file) {
-				//fmt.Printf("Failed filter: %s\n", file.Name())
 				continue
 			}
-			//fmt.Printf("Passed filter: %s\n", file.Name())
 			result = append(result, file)
 		}
 	}
