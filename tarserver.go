@@ -19,17 +19,22 @@ type tarServer struct {
 
 func TarServer(path string) (*tarServer, error) {
 	var buffer []byte
+	var err error
+	fmt.Printf("Opening tar server: [ %s ]\n", path)
+	if buffer, err = ioutil.ReadFile(path); err != nil {
+		return nil, err
+	}
+	return RawTarServer(buffer)
+}
+
+func RawTarServer(data []byte) (*tarServer, error) {
 	var reader *bytes.Reader
 	var handle *tar.Reader
 	var cache map[string]ReadWriteContainer
 	var header *tar.Header
 	var err error
-	fmt.Printf("Opening tar server: %s\n", path)
 
-	if buffer, err = ioutil.ReadFile(path); err != nil {
-		return nil, err
-	}
-	reader = bytes.NewReader(buffer)
+	reader = bytes.NewReader(data)
 	if handle = tar.NewReader(reader); err != nil {
 		return nil, err
 	}
